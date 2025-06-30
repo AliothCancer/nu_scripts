@@ -2,7 +2,7 @@
 
 
 A nu script to order package update by semantic versioning and to highlight version change
-
+*Important*: It needs the nu binary(nushell) to be installed, then you can run it also in a bash shell but it will appear as csv raw text, not in a table like below.
 usage:
 ```
 check_upgrade_type | from csv
