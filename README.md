@@ -10,4 +10,4 @@ usage:
 check_upgrade_type | from csv
 ```
 Output:
-![immagine](https://github.com/user-attachments/assets/a538b521-e3ce-482e-96bb-f54cb5855d28)
+<img width="1271" height="1079" alt="immagine" src="https://github.com/user-attachments/assets/83d1f81e-beea-4eab-a390-9cddc65b0d0d" />
