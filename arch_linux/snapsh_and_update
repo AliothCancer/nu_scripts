@@ -1,0 +1,41 @@
+#!/usr/bin/nu
+
+def date_as_filename []: nothing -> string  {
+  date now | into record | $"($in.year)-($in.month)-($in.day)_h($in.hour)-($in.minute)-($in.second)_($in.timezone)"
+}
+
+let log_style = {
+    fg: '#88C0D0'  # Cyan pastello (ben visibile su scuro)
+    bg: '#3B4252'  # Grigio scuro bluastro (stacco dal nero di fondo)
+    attr: b        # Bold
+}
+def log_info [msg: string]: nothing -> string {
+  $"(ansi --escape $log_style)SNAPSHOT_AND_UPDATE UTIL:(ansi reset) ($msg)"
+}
+
+let system_update_dir = (fd system_updates $env.HOME | lines | get --optional 0)
+if $system_update_dir != null {
+  let ups = check_upgrade_type|from csv;
+  if ($ups | is-empty) {
+    print (log_info "No updates available");
+    print (log_info "Exiting...");
+    exit 0;
+  }
+  print $ups;
+  let do_snapshot = input (log_info "Do you want to proceed and generate a snapshot before the update?[Y/n] ");
+  
+  match ($do_snapshot | str downcase) {
+    "no" | "n" => {}
+     _ => {
+      let update_log_dest = $"($system_update_dir)(date_as_filename).csv";
+      input (log_info "Press enter to continue... next is timeshift snapshotting");
+      sudo timeshift --create --comments "before updates";
+      input (log_info "Press enter to continue... next is grub update");
+      sudo grub-mkconfig -o /boot/grub/grub.cfg;
+      input (log_info "Press enter to continue... next is pacman udpates");
+      sudo pacman -Syu;
+      print log_info $"Saving updates log in ($update_log_dest)";
+      $ups | to csv | save $update_log_dest;
+    }
+  }
+}
