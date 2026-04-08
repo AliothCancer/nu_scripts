@@ -1,0 +1,12 @@
+[package]
+name = "db_manager"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+clap = { version = "4.5.60", features = ["derive"] }
+csv = "1.4.0"
+serde = { version = "1.0.228", features = ["derive"] }
+sqlx = "0.8.6"
+tokio = "1.49.0"
+csv_deserializer = {path = "/home/giulio/Scrivania/altro/csv_deserializer"}

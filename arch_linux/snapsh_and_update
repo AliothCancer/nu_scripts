@@ -1,7 +1,13 @@
 #!/usr/bin/nu
 
+
+
 def date_as_filename []: nothing -> string  {
   date now | into record | $"($in.year)-($in.month)-($in.day)_h($in.hour)-($in.minute)-($in.second)_($in.timezone)"
+}
+def show_update_infos [ updates ] {
+  $updates | polars into-df | polars group-by update_type | polars agg [
+  ( polars col update_type | polars count | polars as "Quantity" ) ] | polars collect
 }
 
 let log_style = {
@@ -13,7 +19,8 @@ def log_info [msg: string]: nothing -> string {
   $"(ansi --escape $log_style)SNAPSHOT_AND_UPDATE UTIL:(ansi reset) ($msg)"
 }
 
-let system_update_dir = (fd system_updates $env.HOME | lines | get --optional 0)
+let system_update_dir = (fd -t d system_updates $env.HOME | lines | get --optional 0)
+
 if $system_update_dir != null {
   let ups = check_upgrade_type|from csv;
   if ($ups | is-empty) {
@@ -21,13 +28,18 @@ if $system_update_dir != null {
     print (log_info "Exiting...");
     exit 0;
   }
+
   print $ups;
+  print (show_update_infos $ups);
+
   let do_snapshot = input (log_info "Do you want to proceed and generate a snapshot before the update?[Y/n] ");
-  
+
   match ($do_snapshot | str downcase) {
-    "no" | "n" => {}
+    "no" | "n" => {
+      print (log_info "Exiting...")
+    }
      _ => {
-      let update_log_dest = $"($system_update_dir)(date_as_filename).csv";
+      let update_log_dest = $"($system_update_dir | default '')logs/(date_as_filename).csv";
       input (log_info "Press enter to continue... next is timeshift snapshotting");
       sudo timeshift --create --comments "before updates";
       input (log_info "Press enter to continue... next is grub update");
